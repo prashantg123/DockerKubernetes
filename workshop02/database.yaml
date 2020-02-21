@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+   name: northwind-ns
+
+--- 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+   namespace: northwind-ns
+   name: northwind-db-configmap
+
+data:
+   MYSQL_DATABASE: northwind
+
+--- 
+apiVersion: v1
+kind: Secret
+metadata:
+   namespace: northwind-ns
+   name: northwind-db-secret
+
+data:
+   MYSQL_ROOT_PASSWORD: Y2hhbmdlaXQ=
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: northwind-db-deploy
+   namespace: northwind-ns
+   labels:
+      name: northwind-db
+      tier: data
+
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         name: northwind-db-pod
+   template:
+      metadata:
+         name: northwind-db-pod
+         labels:
+            name: northwind-db-pod
+      spec:
+         containers:
+         - name: northwind-db-container
+           image: stackupiss/northwind-db:v1
+           imagePullPolicy: Always
+           ports:
+           - name: mysql-port
+             containerPort: 3306
+           envFrom:
+              - configMapRef:
+                 name: northwind-db-configmap
+              - secretRef:
+                 name: northwind-db-secret
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+   name: northwind-db-service
+   namespace: northwind-ns
+   labels:
+      name: northwind-db-service
+spec:
+   type: ClusterIP
+   selector:
+      name: northwind-db-pod
+   ports:
+   - name: northwind-port
+     port: 3306
+     targetPort: mysql-port

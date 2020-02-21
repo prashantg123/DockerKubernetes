@@ -1,0 +1,48 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: northwind-app-deploy
+   namespace: northwind-ns
+   labels:
+      name: northwind-app
+      tier: app
+
+spec:
+   replicas: 2
+   selector:
+      matchLabels:
+         name: northwind-app-pod
+
+   strategy:
+      type: RollingUpdate
+      rollingUpdate:
+         maxSurge: 1
+         maxUnavailable: 1
+   template:
+      metadata:
+         name: northwind-app-pod
+         labels:
+            name: northwind-app-pod
+      spec:
+         containers:
+         - name: northwind-app-container
+           image: stackupiss/northwind-app:v2
+           imagePullPolicy: Always
+           ports:
+           - name: app-port
+             containerPort: 3000
+           env:
+           - name: DB_PASSWORD
+             valueFrom:
+                secretKeyRef:
+                  name: northwind-db-secret
+                  key: MYSQL_ROOT_PASSWORD
+           - name: INSTANCE_IP_ADDRESS
+             valueFrom:
+                fieldRef:
+                   fieldPath: status.podIP
+           envFrom:
+              - configMapRef:
+                 name: northwind-app-configmap
+

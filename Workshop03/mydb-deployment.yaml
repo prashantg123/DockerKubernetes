@@ -1,0 +1,42 @@
+
+
+--- 
+apiVersion: v1
+kind: Secret
+metadata:
+   namespace: northwind-ns
+   name: northwind-db-secret
+
+data:
+   MYSQL_ROOT_PASSWORD: Y2hhbmdlaXQ=
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: mydb-deployment
+   labels:
+      name: mydb
+
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         name: mydb
+   template:
+      metadata:
+         name: mydb
+         labels:
+            name: mydb
+      spec:
+         containers:
+         - name: mydb-container
+           image: stackupiss/northwind-db:v1
+           imagePullPolicy: Always
+           ports:
+           - name: mydb-port
+             containerPort: 3306
+           envFrom:
+              - secretRef:
+                 name: northwind-db-secret
+

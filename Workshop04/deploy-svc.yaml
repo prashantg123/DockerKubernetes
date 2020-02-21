@@ -1,0 +1,37 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name:  fortuneapp-svc
+spec:
+  selector:
+    name:  fortuneapp
+  type:  ClusterIP
+  ports:
+  - port:  80
+    targetPort:  3000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortuneapp-deployment
+spec:
+  selector:
+    matchLabels:
+      name: fortuneapp
+  template:
+    metadata:
+      labels:
+        name: fortuneapp
+    spec:
+      containers:
+      - name: fortuneapp
+        image: stackupiss/fortune:v1
+        ports:
+        - containerPort: 3000
+
+
+#istioctl kube-inject -f deploy-svc.yaml -o deploy-svc-injected.yaml
+#kubectl apply -f deploy-svc-injected.yaml
+# kubectl apply -f <($istioctl kube-inject -f deploy-svc.yaml)

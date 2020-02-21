@@ -1,0 +1,49 @@
+## myappv2 SERVICE
+kind: Service
+apiVersion: v1
+metadata:
+  name:  myappv2-svc
+spec:
+  selector:
+    app:  myapp
+    version: v2
+  type:  ClusterIP
+  ports:
+  - port:  80
+    targetPort:  3000
+
+---
+## myappv2 Deployment
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  myappv2-deployment
+  labels:
+    app:  myapp
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: myapp
+        version: v2
+    spec:           
+      containers:
+      - image:  stackupiss/northwind-app:v2
+        name:  myappv2
+        env:
+        - name: "DB_PASSWORD"
+          value:  "changeit"
+        - name: "DB_USER"
+          value:  "root"
+        - name: "DB_HOST"
+          value: "mydb-svc"
+        ports:
+        - containerPort:  3000
+        imagePullPolicy: Always

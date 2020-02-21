@@ -1,0 +1,58 @@
+#157.230.194.195 LB
+## GATEWAY
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: fortune-gw
+
+spec:
+  selector: 
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+      - fortuneapp.157.230.194.195.nip.io
+
+---
+## VS
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: fortune-vs
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - fortune-gw.default.svc.cluster.local
+  http:
+  - match:
+    - uri:
+        exact: /
+    route:
+    - destination:
+        host: fortuneapp-svc.default.svc.cluster.local
+    rewrite:
+      uri: /
+  - match:
+    - uri:
+        exact: /app1
+    route:
+    - destination:
+        host: myappv1-svc.default.svc.cluster.local
+    rewrite:
+      uri: /
+  - match:
+    - uri:
+        exact: /random
+    route:
+    - destination:
+        host: myappv1-svc.default.svc.cluster.local
+      weight: 80
+    - destination:
+        host: fortuneapp-svc.default.svc.cluster.local
+      weight: 20
+    rewrite:
+      uri: /
